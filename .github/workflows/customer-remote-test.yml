@@ -8,24 +8,31 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Test DeepMaple via Ngrok
+      - name: Test DeepMaple (with Auth)
         env:
           BASE_URL: ${{ secrets.BASE_URL }}
         run: |
           echo "🌐 Testing at: $BASE_URL"
           
           echo "🔍 1. Health Check..."
-          curl -f $BASE_URL/health || echo "Health check failed"
+          curl -f $BASE_URL/health
           
           echo "📄 2. API Docs Check..."
           curl -f -I $BASE_URL/docs
           
-          echo "👤 3. Creating Test Customer..."
+          echo "🔑 3. Testing Analyst Login..."
+          # Default password: admin (projene göre)
+          LOGIN_RESPONSE=$(curl -s -X POST $BASE_URL/api/analyst/login \
+            -H "Content-Type: application/json" \
+            -d '{"username":"admin","password":"admin"}')
+          
+          echo "Login Response: $LOGIN_RESPONSE"
+          
+          # Token almaya çalış (eğer varsa)
+          echo "👤 4. Creating Test Customer..."
           curl -X POST $BASE_URL/api/analyst/customers \
             -H "Content-Type: application/json" \
-            -d '{"name":"GitHub Actions Test Customer","email":"test@ngrok.com","company":"Test Inc"}' \
-            || echo "Customer creation attempted"
+            -d '{"name":"GitHub Test Customer","email":"test@ngrok.com","company":"Test Inc"}'
           
           echo ""
-          echo "🎉 CUSTOMER TEST TAMAMLANDI!"
-          echo "DeepMaple local'de çalışıyor!"
+          echo "🎉 Test Tamamlandı!"
